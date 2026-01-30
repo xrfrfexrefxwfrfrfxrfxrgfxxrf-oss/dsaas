@@ -41,8 +41,8 @@ input {
 </head>
 <body>
 <div class="terminal" id="terminal">
-    <div class="line">TermWind Terminal v2.4</div>
-    <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | websitelookup &lt;domain&gt;</div>
+    <div class="line">TermWind Terminal v2.5</div>
+    <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | websitelookup &lt;domain&gt; | spam &lt;text&gt; | echo &lt;text&gt;</div>
     <br>
     <div class="prompt">
         <span>user@termwind:~$</span>
@@ -207,6 +207,22 @@ input.addEventListener("keydown", async (e) => {
         }
     }
 
+    // ---------------- spam ----------------
+    else if (command.startsWith("spam")) {
+        const text = command.split(" ").slice(1).join(" ");
+        if (!text) { print("Usage: spam <text>"); return; }
+        for (let i = 0; i < 10; i++) {  // spam 10 times
+            print(text);
+        }
+    }
+
+    // ---------------- echo ----------------
+    else if (command.startsWith("echo")) {
+        const text = command.split(" ").slice(1).join(" ");
+        if (!text) { print("Usage: echo <text>"); return; }
+        print(text);
+    }
+
     else {
         print("command not found: " + command);
     }
@@ -215,3 +231,4 @@ input.addEventListener("keydown", async (e) => {
 </body>
 </html>
 
+  
