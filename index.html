@@ -25,7 +25,7 @@ body {
     border-radius: 8px;
     box-shadow: 0 0 40px rgba(0,0,0,.8);
 }
-.line { white-space: pre-wrap; line-height: 1.4; }
+.line { white-space: pre; line-height: 1.1; }
 .prompt { display: flex; }
 .prompt span { margin-right: 6px; }
 input {
@@ -39,10 +39,9 @@ input {
 }
 </style>
 </head>
-
 <body>
 <div class="terminal" id="terminal">
-    <div class="line">TermWind Terminal v2.2</div>
+    <div class="line">TermWind Terminal v2.4</div>
     <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | websitelookup &lt;domain&gt;</div>
     <br>
     <div class="prompt">
@@ -63,21 +62,68 @@ function print(text = "") {
     terminal.scrollTop = terminal.scrollHeight;
 }
 
-// ---------------- browfetch browser detection ----------------
+// ---------------- Browser detection ----------------
 function getBrowserInfo() {
     const ua = navigator.userAgent;
-    let browser = "Unknown";
-
-    if (/firefox/i.test(ua)) browser = "Mozilla Firefox";
-    else if (/chrome|chromium|crios/i.test(ua)) browser = "Google Chrome";
-    else if (/safari/i.test(ua)) browser = "Safari";
-    else if (/edg/i.test(ua)) browser = "Microsoft Edge";
-    else if (/opr/i.test(ua)) browser = "Opera";
-
-    return browser;
+    if (/firefox/i.test(ua)) return "Firefox";
+    if (/chrome|chromium|crios/i.test(ua)) return "Chrome";
+    if (/safari/i.test(ua) && !/chrome|chromium|crios/i.test(ua)) return "Safari";
+    return "Other";
 }
 
-// ---------------- command handling ----------------
+// ---------------- ASCII logos ----------------
+function getBrowserLogo(name) {
+    switch(name) {
+        case "Chrome": return `
+                                          
+ ▄▄▄▄▄▄▄ ▄▄                               
+███▀▀▀▀▀ ██                               
+███      ████▄ ████▄ ▄███▄ ███▄███▄ ▄█▀█▄ 
+███      ██ ██ ██ ▀▀ ██ ██ ██ ██ ██ ██▄█▀ 
+▀███████ ██ ██ ██    ▀███▀ ██ ██ ██ ▀█▄▄▄ 
+                                          
+                                          
+                                                                           
+`;        
+        case "Safari": return `
+                                 
+  ▄▄▄▄▄          ▄▄             
+ ██▀▀▀▀█▄       ██              
+ ▀██▄  ▄▀      ▄██▄      ▄    ▀▀
+   ▀██▄▄  ▄▀▀█▄ ██ ▄▀▀█▄ ████▄██
+ ▄   ▀██▄ ▄█▀██ ██ ▄█▀██ ██   ██
+ ▀██████▀▄▀█▄██▄██▄▀█▄██▄█▀  ▄██
+                ██              
+               ▀▀                                                     
+                                                          
+`;
+        case "Firefox": return `
+  █████▒██▓ ██▀███  ▓█████   █████▒▒█████  ▒██   ██▒
+▓██   ▒▓██▒▓██ ▒ ██▒▓█   ▀ ▓██   ▒▒██▒  ██▒▒▒ █ █ ▒░
+▒████ ░▒██▒▓██ ░▄█ ▒▒███   ▒████ ░▒██░  ██▒░░  █   ░
+░▓█▒  ░░██░▒██▀▀█▄  ▒▓█  ▄ ░▓█▒  ░▒██   ██░ ░ █ █ ▒ 
+░▒█░   ░██░░██▓ ▒██▒░▒████▒░▒█░   ░ ████▓▒░▒██▒ ▒██▒
+ ▒ ░   ░▓  ░ ▒▓ ░▒▓░░░ ▒░ ░ ▒ ░   ░ ▒░▒░▒░ ▒▒ ░ ░▓ ░
+ ░      ▒ ░  ░▒ ░ ▒░ ░ ░  ░ ░       ░ ▒ ▒░ ░░   ░▒ ░
+ ░ ░    ▒ ░  ░░   ░    ░    ░ ░   ░ ░ ░ ▒   ░    ░  
+        ░     ░        ░  ░           ░ ░   ░    ░  
+                                                    
+                                                             
+                                                                              
+                                                                              
+`;
+        default: return `
+                        
+  ▄▄▄▄    ▄▄▄▄    ▄▄▄▄  
+ ██▀▀██  ██▀▀██  ██▀▀██ 
+   ▄██▀    ▄██▀    ▄██▀ 
+   ██      ██      ██   
+   ▄▄      ▄▄      ▄▄   
+                        
+                        
+    }
+}
+
 input.addEventListener("keydown", async (e) => {
     if (e.key !== "Enter") return;
     const command = input.value.trim();
@@ -86,9 +132,12 @@ input.addEventListener("keydown", async (e) => {
 
     // ---------------- browfetch ----------------
     if (command === "browfetch") {
+        const browser = getBrowserInfo();
+        const logo = getBrowserLogo(browser);
         print("");
-        print("Browser : " + getBrowserInfo());
-        print("Platform: " + navigator.platform || "Unknown");
+        print(logo);
+        print("Browser : " + browser);
+        print("Platform: " + (navigator.platform || "Unknown"));
         print("Language: " + navigator.language);
         print("");
     }
@@ -155,7 +204,6 @@ input.addEventListener("keydown", async (e) => {
 
         print("Looking up DNS records for: " + domain);
         try {
-            // Google DNS-over-HTTPS API (supports CORS)
             const dnsA = await fetch(`https://dns.google/resolve?name=${domain}&type=A`).then(r => r.json());
             const dnsAAAA = await fetch(`https://dns.google/resolve?name=${domain}&type=AAAA`).then(r => r.json());
 
@@ -183,4 +231,3 @@ input.addEventListener("keydown", async (e) => {
 </script>
 </body>
 </html>
-
