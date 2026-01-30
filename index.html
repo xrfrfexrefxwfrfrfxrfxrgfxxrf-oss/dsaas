@@ -42,7 +42,7 @@ input {
 
 <body>
 <div class="terminal" id="terminal">
-    <div class="line">TermWind Terminal v2.1</div>
+    <div class="line">TermWind Terminal v2.2</div>
     <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | websitelookup &lt;domain&gt;</div>
     <br>
     <div class="prompt">
@@ -63,6 +63,21 @@ function print(text = "") {
     terminal.scrollTop = terminal.scrollHeight;
 }
 
+// ---------------- browfetch browser detection ----------------
+function getBrowserInfo() {
+    const ua = navigator.userAgent;
+    let browser = "Unknown";
+
+    if (/firefox/i.test(ua)) browser = "Mozilla Firefox";
+    else if (/chrome|chromium|crios/i.test(ua)) browser = "Google Chrome";
+    else if (/safari/i.test(ua)) browser = "Safari";
+    else if (/edg/i.test(ua)) browser = "Microsoft Edge";
+    else if (/opr/i.test(ua)) browser = "Opera";
+
+    return browser;
+}
+
+// ---------------- command handling ----------------
 input.addEventListener("keydown", async (e) => {
     if (e.key !== "Enter") return;
     const command = input.value.trim();
@@ -72,8 +87,8 @@ input.addEventListener("keydown", async (e) => {
     // ---------------- browfetch ----------------
     if (command === "browfetch") {
         print("");
-        print("Browser : " + navigator.userAgent);
-        print("Platform: " + navigator.platform);
+        print("Browser : " + getBrowserInfo());
+        print("Platform: " + navigator.platform || "Unknown");
         print("Language: " + navigator.language);
         print("");
     }
@@ -138,36 +153,26 @@ input.addEventListener("keydown", async (e) => {
             return;
         }
 
-        print("Looking up DNS A/AAAA records for: " + domain);
+        print("Looking up DNS records for: " + domain);
         try {
-            const dnsRes = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=A&ct=application/dns-json`);
-            const dnsDataA = await dnsRes.json();
-
-            const dnsRes6 = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=AAAA&ct=application/dns-json`);
-            const dnsDataAAAA = await dnsRes6.json();
+            // Google DNS-over-HTTPS API (supports CORS)
+            const dnsA = await fetch(`https://dns.google/resolve?name=${domain}&type=A`).then(r => r.json());
+            const dnsAAAA = await fetch(`https://dns.google/resolve?name=${domain}&type=AAAA`).then(r => r.json());
 
             print("");
-            // A records
-            if (dnsDataA.Answer) {
+            if (dnsA.Answer) {
                 print("A Records:");
-                dnsDataA.Answer.forEach(rec => {
-                    if (rec.type === 1) print(" IP: " + rec.data);
-                });
-            } else {
-                print("No A records found.");
-            }
+                dnsA.Answer.forEach(rec => { if (rec.type === 1) print(" IP: " + rec.data); });
+            } else print("No A records found.");
 
-            // AAAA records
-            if (dnsDataAAAA.Answer) {
+            if (dnsAAAA.Answer) {
                 print("");
                 print("AAAA Records:");
-                dnsDataAAAA.Answer.forEach(rec => {
-                    if (rec.type === 28) print(" IP v6: " + rec.data);
-                });
+                dnsAAAA.Answer.forEach(rec => { if (rec.type === 28) print(" IP v6: " + rec.data); });
             }
             print("");
         } catch {
-            print("Error looking up DNS for " + domain);
+            print("Error fetching DNS for " + domain);
         }
     }
 
@@ -178,3 +183,4 @@ input.addEventListener("keydown", async (e) => {
 </script>
 </body>
 </html>
+
