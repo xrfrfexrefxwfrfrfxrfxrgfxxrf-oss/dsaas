@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>TermGPT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    background: #0b0e14;
+    color: #cdd6f4;
+    font-family: monospace;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.terminal {
+    width: 95%;
+    max-width: 900px;
+    height: 90vh;
+    background: #11131a;
+    padding: 20px;
+    overflow-y: auto;
+    border-radius: 8px;
+    box-shadow: 0 0 40px rgba(0,0,0,.8);
+}
+
+.line {
+    white-space: pre-wrap;
+    line-height: 1.4;
+}
+
+.prompt {
+    display: flex;
+}
+
+.prompt span {
+    margin-right: 6px;
+}
+
+input {
+    background: none;
+    border: none;
+    outline: none;
+    color: inherit;
+    font-family: inherit;
+    font-size: 16px;
+    flex: 1;
+}
+</style>
+</head>
+
+<body>
+
+<div class="terminal" id="terminal">
+    <div class="line">TermGPT Terminal v1.0</div>
+    <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | prompt</div>
+    <br>
+
+    <div class="prompt">
+        <span>user@termgpt:~$</span>
+        <input id="input" autofocus>
+    </div>
+</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+const input = document.getElementById("input");
+
+function print(text = "") {
+    const div = document.createElement("div");
+    div.className = "line";
+    div.textContent = text;
+    terminal.insertBefore(div, terminal.lastElementChild);
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+input.addEventListener("keydown", async (e) => {
+    if (e.key !== "Enter") return;
+
+    const command = input.value.trim();
+    print("user@termgpt:~$ " + command);
+    input.value = "";
+
+    // ---------------- browfetch ----------------
+    if (command === "browfetch") {
+        print("");
+        print("Browser : " + navigator.userAgent);
+        print("Platform: " + navigator.platform);
+        print("Language: " + navigator.language);
+        print("");
+    }
+
+    // ---------------- ip ----------------
+    else if (command === "ip") {
+        print("Fetching IP...");
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+
+            print("");
+            print("IP       : " + data.ip);
+            print("Country  : " + data.country_name);
+            print("City     : " + data.city);
+            print("Provider : " + data.org);
+            print("");
+        } catch {
+            print("Error fetching IP (use live server).");
+        }
+    }
+
+    // ---------------- checkip ----------------
+    else if (command.startsWith("checkip")) {
+        const ip = command.split(" ")[1];
+        if (!ip) {
+            print("Usage: checkip <ip>");
+            return;
+        }
+
+        try {
+            const res = await fetch(`https://ipapi.co/${ip}/json/`);
+            const data = await res.json();
+
+            print("");
+            print("IP       : " + ip);
+            print("Country  : " + data.country_name);
+            print("Provider : " + data.org);
+            print("");
+        } catch {
+            print("Invalid IP or request blocked.");
+        }
+    }
+
+    // ---------------- prompt ----------------
+    else if (command === "prompt") {
+        print("");
+        print("TermGPT: Ask me something.");
+        print("Example: who are you");
+        print("Type 'exit' to leave.");
+        print("");
+
+        const promptLine = document.createElement("div");
+        promptLine.className = "prompt";
+
+        const label = document.createElement("span");
+        label.textContent = "TermGPT>";
+
+        const aiInput = document.createElement("input");
+
+        promptLine.appendChild(label);
+        promptLine.appendChild(aiInput);
+        terminal.appendChild(promptLine);
+        aiInput.focus();
+
+        aiInput.addEventListener("keydown", ev => {
+            if (ev.key === "Enter") {
+                const q = aiInput.value.toLowerCase();
+                terminal.removeChild(promptLine);
+
+                print("TermGPT> " + q);
+
+                if (q.includes("who")) {
+                    print("TermGPT: I am a browser terminal assistant.");
+                } else if (q.includes("help")) {
+                    print("TermGPT: Commands: browfetch, ip, checkip, prompt.");
+                } else if (q === "exit") {
+                    print("Leaving TermGPT mode.");
+                } else {
+                    print("TermGPT: I understand.");
+                }
+
+                print("");
+            }
+        });
+    }
+
+    else {
+        print("command not found: " + command);
+    }
+});
+</script>
+
+</body>
+</html>
