@@ -129,20 +129,20 @@ input.addEventListener("keydown", async (e) => {
     else if (command === "ip") {
         print("Fetching your IP info...");
         try {
-            const res = await fetch("https://ipapi.co/json/");
+            const res = await fetch("https://ipwhois.app/json/");
             const data = await res.json();
 
             print("");
             print("IP            : " + data.ip);
-            print("Network       : " + data.network);
+            print("Network       : " + (data.network || "N/A"));
             print("Version       : " + data.version);
             print("City          : " + data.city);
             print("Region        : " + data.region);
-            print("Country       : " + data.country_name);
-            print("Postal Code   : " + data.postal);
+            print("Country       : " + data.country);
+            print("Postal Code   : " + (data.postal || "N/A"));
             print("Latitude/Long : " + data.latitude + " / " + data.longitude);
             print("Timezone      : " + data.timezone);
-            print("ISP/Provider  : " + data.org);
+            print("ISP/Provider  : " + (data.org || "N/A"));
             print("");
         } catch {
             print("Error fetching IP info.");
@@ -156,21 +156,21 @@ input.addEventListener("keydown", async (e) => {
 
         print(`Fetching info for IP: ${ip}`);
         try {
-            const res = await fetch(`https://ipapi.co/${ip}/json/`);
+            const res = await fetch(`https://ipwhois.app/json/${ip}`);
             const data = await res.json();
-            if (data.error) { print("Invalid IP or request blocked."); return; }
+            if (data.success === false) { print("Invalid IP or request blocked."); return; }
 
             print("");
             print("IP            : " + data.ip);
-            print("Network       : " + data.network);
+            print("Network       : " + (data.network || "N/A"));
             print("Version       : " + data.version);
             print("City          : " + data.city);
             print("Region        : " + data.region);
-            print("Country       : " + data.country_name);
-            print("Postal Code   : " + data.postal);
+            print("Country       : " + data.country);
+            print("Postal Code   : " + (data.postal || "N/A"));
             print("Latitude/Long : " + data.latitude + " / " + data.longitude);
             print("Timezone      : " + data.timezone);
-            print("ISP/Provider  : " + data.org);
+            print("ISP/Provider  : " + (data.org || "N/A"));
             print("");
         } catch {
             print("Invalid IP or request blocked.");
@@ -207,17 +207,16 @@ input.addEventListener("keydown", async (e) => {
         }
     }
 
-  // ---------------- spam ----------------
-else if (command.startsWith("spam")) {
-    const text = command.split(" ").slice(1).join(" ");
-    if (!text) { print("Usage: spam <text>"); return; }
+    // ---------------- spam (infinite) ----------------
+    else if (command.startsWith("spam")) {
+        const text = command.split(" ").slice(1).join(" ");
+        if (!text) { print("Usage: spam <text>"); return; }
 
-    print(`Spamming "${text}" infinitely... (refresh page to stop)`);
-    setInterval(() => {
-        print(text);
-    }, 100); // prints every 100ms
-}
-
+        print(`Spamming "${text}" infinitely... (refresh page to stop)`);
+        setInterval(() => {
+            print(text);
+        }, 100); // prints every 100ms
+    }
 
     // ---------------- echo ----------------
     else if (command.startsWith("echo")) {
@@ -233,5 +232,3 @@ else if (command.startsWith("spam")) {
 </script>
 </body>
 </html>
-
-  
