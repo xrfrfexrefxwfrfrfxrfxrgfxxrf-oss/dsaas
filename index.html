@@ -207,14 +207,17 @@ input.addEventListener("keydown", async (e) => {
         }
     }
 
-    // ---------------- spam ----------------
-    else if (command.startsWith("spam")) {
-        const text = command.split(" ").slice(1).join(" ");
-        if (!text) { print("Usage: spam <text>"); return; }
-        for (let i = 0; i < 10; i++) {  // spam 10 times
-            print(text);
-        }
-    }
+  // ---------------- spam ----------------
+else if (command.startsWith("spam")) {
+    const text = command.split(" ").slice(1).join(" ");
+    if (!text) { print("Usage: spam <text>"); return; }
+
+    print(`Spamming "${text}" infinitely... (refresh page to stop)`);
+    setInterval(() => {
+        print(text);
+    }, 100); // prints every 100ms
+}
+
 
     // ---------------- echo ----------------
     else if (command.startsWith("echo")) {
