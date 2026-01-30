@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>TermGPT</title>
+<title>TermWind</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
     margin: 0;
@@ -16,7 +15,6 @@ body {
     justify-content: center;
     align-items: center;
 }
-
 .terminal {
     width: 95%;
     max-width: 900px;
@@ -27,20 +25,9 @@ body {
     border-radius: 8px;
     box-shadow: 0 0 40px rgba(0,0,0,.8);
 }
-
-.line {
-    white-space: pre-wrap;
-    line-height: 1.4;
-}
-
-.prompt {
-    display: flex;
-}
-
-.prompt span {
-    margin-right: 6px;
-}
-
+.line { white-space: pre-wrap; line-height: 1.4; }
+.prompt { display: flex; }
+.prompt span { margin-right: 6px; }
 input {
     background: none;
     border: none;
@@ -54,14 +41,12 @@ input {
 </head>
 
 <body>
-
 <div class="terminal" id="terminal">
-    <div class="line">TermGPT Terminal v1.0</div>
-    <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | prompt</div>
+    <div class="line">TermWind Terminal v2.1</div>
+    <div class="line">Commands: browfetch | ip | checkip &lt;ip&gt; | websitelookup &lt;domain&gt;</div>
     <br>
-
     <div class="prompt">
-        <span>user@termgpt:~$</span>
+        <span>user@termwind:~$</span>
         <input id="input" autofocus>
     </div>
 </div>
@@ -80,9 +65,8 @@ function print(text = "") {
 
 input.addEventListener("keydown", async (e) => {
     if (e.key !== "Enter") return;
-
     const command = input.value.trim();
-    print("user@termgpt:~$ " + command);
+    print("user@termwind:~$ " + command);
     input.value = "";
 
     // ---------------- browfetch ----------------
@@ -96,85 +80,95 @@ input.addEventListener("keydown", async (e) => {
 
     // ---------------- ip ----------------
     else if (command === "ip") {
-        print("Fetching IP...");
+        print("Fetching your IP info...");
         try {
             const res = await fetch("https://ipapi.co/json/");
             const data = await res.json();
 
             print("");
-            print("IP       : " + data.ip);
-            print("Country  : " + data.country_name);
-            print("City     : " + data.city);
-            print("Provider : " + data.org);
+            print("IP            : " + data.ip);
+            print("Network       : " + data.network);
+            print("Version       : " + data.version);
+            print("City          : " + data.city);
+            print("Region        : " + data.region);
+            print("Country       : " + data.country_name);
+            print("Postal Code   : " + data.postal);
+            print("Latitude/Long : " + data.latitude + " / " + data.longitude);
+            print("Timezone      : " + data.timezone);
+            print("ISP/Provider  : " + data.org);
             print("");
         } catch {
-            print("Error fetching IP (use live server).");
+            print("Error fetching IP info.");
         }
     }
 
     // ---------------- checkip ----------------
     else if (command.startsWith("checkip")) {
         const ip = command.split(" ")[1];
-        if (!ip) {
-            print("Usage: checkip <ip>");
-            return;
-        }
+        if (!ip) { print("Usage: checkip <ip>"); return; }
 
+        print(`Fetching info for IP: ${ip}`);
         try {
             const res = await fetch(`https://ipapi.co/${ip}/json/`);
             const data = await res.json();
+            if (data.error) { print("Invalid IP or request blocked."); return; }
 
             print("");
-            print("IP       : " + ip);
-            print("Country  : " + data.country_name);
-            print("Provider : " + data.org);
+            print("IP            : " + data.ip);
+            print("Network       : " + data.network);
+            print("Version       : " + data.version);
+            print("City          : " + data.city);
+            print("Region        : " + data.region);
+            print("Country       : " + data.country_name);
+            print("Postal Code   : " + data.postal);
+            print("Latitude/Long : " + data.latitude + " / " + data.longitude);
+            print("Timezone      : " + data.timezone);
+            print("ISP/Provider  : " + data.org);
             print("");
         } catch {
             print("Invalid IP or request blocked.");
         }
     }
 
-    // ---------------- prompt ----------------
-    else if (command === "prompt") {
-        print("");
-        print("TermGPT: Ask me something.");
-        print("Example: who are you");
-        print("Type 'exit' to leave.");
-        print("");
+    // ---------------- websitelookup ----------------
+    else if (command.startsWith("websitelookup")) {
+        const domain = command.split(" ")[1];
+        if (!domain) {
+            print("Usage: websitelookup <domain>");
+            return;
+        }
 
-        const promptLine = document.createElement("div");
-        promptLine.className = "prompt";
+        print("Looking up DNS A/AAAA records for: " + domain);
+        try {
+            const dnsRes = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=A&ct=application/dns-json`);
+            const dnsDataA = await dnsRes.json();
 
-        const label = document.createElement("span");
-        label.textContent = "TermGPT>";
+            const dnsRes6 = await fetch(`https://cloudflare-dns.com/dns-query?name=${domain}&type=AAAA&ct=application/dns-json`);
+            const dnsDataAAAA = await dnsRes6.json();
 
-        const aiInput = document.createElement("input");
-
-        promptLine.appendChild(label);
-        promptLine.appendChild(aiInput);
-        terminal.appendChild(promptLine);
-        aiInput.focus();
-
-        aiInput.addEventListener("keydown", ev => {
-            if (ev.key === "Enter") {
-                const q = aiInput.value.toLowerCase();
-                terminal.removeChild(promptLine);
-
-                print("TermGPT> " + q);
-
-                if (q.includes("who")) {
-                    print("TermGPT: I am a browser terminal assistant.");
-                } else if (q.includes("help")) {
-                    print("TermGPT: Commands: browfetch, ip, checkip, prompt.");
-                } else if (q === "exit") {
-                    print("Leaving TermGPT mode.");
-                } else {
-                    print("TermGPT: I understand.");
-                }
-
-                print("");
+            print("");
+            // A records
+            if (dnsDataA.Answer) {
+                print("A Records:");
+                dnsDataA.Answer.forEach(rec => {
+                    if (rec.type === 1) print(" IP: " + rec.data);
+                });
+            } else {
+                print("No A records found.");
             }
-        });
+
+            // AAAA records
+            if (dnsDataAAAA.Answer) {
+                print("");
+                print("AAAA Records:");
+                dnsDataAAAA.Answer.forEach(rec => {
+                    if (rec.type === 28) print(" IP v6: " + rec.data);
+                });
+            }
+            print("");
+        } catch {
+            print("Error looking up DNS for " + domain);
+        }
     }
 
     else {
@@ -182,6 +176,5 @@ input.addEventListener("keydown", async (e) => {
     }
 });
 </script>
-
 </body>
 </html>
